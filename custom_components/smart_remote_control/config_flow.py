@@ -92,7 +92,7 @@ def _schema_target(defaults=None):
 def _schema_broadlink(defaults=None):
     d = defaults or {}
     return vol.Schema({
-        vol.Required("entity_id", default=d.get("entity_id", "")): selector.EntitySelector(selector.EntitySelectorConfig(domain="remote")),
+        vol.Required("entity_id", default=d.get("entity_id") or d.get(CONF_REMOTE_ENTITY, "")): selector.EntitySelector(selector.EntitySelectorConfig(domain="remote")),
     })
 
 
@@ -269,23 +269,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return await self.async_step_grouping_attributes()
         return self.async_show_form(step_id="target", data_schema=_schema_target())
 
-    async def async_step_grouping_attributes(self, user_input=None):
-        if user_input is not None:
-            self._data[CONF_GROUPING_ATTRIBUTES] = user_input.get(CONF_GROUPING_ATTRIBUTES, [])
-            self._data[CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE] = user_input.get(CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE, False)
-            return await self.async_step_temperature()
-        return self.async_show_form(step_id="grouping_attributes", data_schema=_schema_grouping(self._data))
-
     async def async_step_broadlink(self, user_input=None):
         if user_input is not None:
             self._data[CONF_REMOTE_ENTITY] = user_input["entity_id"]
-            return await self.async_step_profile_upload()
+            return await self.async_step_grouping_attributes()
         return self.async_show_form(step_id="broadlink", data_schema=_schema_broadlink())
 
     async def async_step_zigbee2mqtt(self, user_input=None):
         if user_input is not None:
             self._data[CONF_MQTT_TOPIC] = user_input[CONF_MQTT_TOPIC]
-            return await self.async_step_profile_upload()
+            return await self.async_step_grouping_attributes()
         return self.async_show_form(step_id="zigbee2mqtt", data_schema=_schema_z2m())
 
     async def async_step_localtuya(self, user_input=None):
@@ -306,99 +299,76 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except (TypeError, ValueError):
                 return self.async_show_form(step_id="localtuya_dp", data_schema=_schema_localtuya_dp(selected, self._data), errors={"base": "invalid_dp"})
             self._data[CONF_DP] = dp
-            return await self.async_step_profile_upload()
+            return await self.async_step_temperature()
         return self.async_show_form(step_id="localtuya_dp", data_schema=_schema_localtuya_dp(selected, self._data))
-
-    async def async_step_profile_upload(self, user_input=None):
-        errors = {}
-        # This text is shown in the form description so users can see the actual
-        # reason a profile was rejected instead of only an error key.
-        details = (
-            "Upload a Climate Profile JSON file. HVAC, Fan and Temperature "
-            "are required; Swing and Preset are optional."
-        )
-        if user_input is not None:
-            try:
-                upload_id = user_input[CONF_PROFILE_FILE]
-
-                def _read_upload():
-                    with process_uploaded_file(self.hass, upload_id) as path:
-                        text = path.read_text(encoding="utf-8")
-                        return json.loads(text)
-
-                profile = await self.hass.async_add_executor_job(_read_upload)
-                result = validate_climate_profile(profile, self._data[CONF_REMOTE_TYPE])
-                if not result.valid:
-                    errors["base"] = "profile_validation_failed"
-                    details = "Profile cannot be used because:\n• " + "\n• ".join(result.errors)
-                    if result.warnings:
-                        details += "\n\nWarnings:\n• " + "\n• ".join(result.warnings)
-                else:
-                    self._data[CONF_DEVICE_PROFILE] = profile
-                    self._profile_summary = profile_summary(profile)
-                    self._profile_warnings = "; ".join(result.warnings) or "None"
-                    return await self.async_step_profile_review()
-            except json.JSONDecodeError as err:
-                errors["base"] = "invalid_json"
-                details = f"The file is not valid JSON: line {err.lineno}, column {err.colno}: {err.msg}."
-            except UnicodeDecodeError:
-                errors["base"] = "invalid_encoding"
-                details = "The file is not UTF-8 text. Save the JSON file as UTF-8 and upload it again."
-            except (OSError, ValueError, KeyError) as err:
-                errors["base"] = "profile_read_failed"
-                details = f"The uploaded profile could not be read: {err}."
-
-        self._profile_warnings = details
-        return self.async_show_form(
-            step_id="profile_upload",
-            data_schema=_schema_profile_upload(),
-            errors=errors,
-            description_placeholders={"details": details},
-        )
-
-    async def async_step_profile_review(self, user_input=None):
-        if user_input is not None:
-            return await self.async_step_sensors()
-        ph = dict(self._profile_summary)
-        ph["warnings"] = self._profile_warnings
-        return self.async_show_form(step_id="profile_review", data_schema=vol.Schema({}), description_placeholders=ph)
 
     async def async_step_temperature(self, user_input=None):
         if user_input is not None:
-            self._data[CONF_TEMPERATURE] = user_input
+            self._data[CONF_TEMPERATURE] = dict(user_input)
             return await self.async_step_hvac_modes()
-        return self.async_show_form(step_id="temperature", data_schema=_schema_temperature(self._data.get(CONF_TEMPERATURE, {})))
+        return self.async_show_form(step_id="temperature", data_schema=_schema_temperature(self._data.get(CONF_TEMPERATURE)))
 
     async def async_step_hvac_modes(self, user_input=None):
         if user_input is not None:
-            self._data[CONF_HVAC_MODES] = user_input
+            self._data[CONF_HVAC_MODES] = user_input["modes"]
             return await self.async_step_fan_modes()
-        return self.async_show_form(step_id="hvac_modes", data_schema=_schema_hvac(self._data.get(CONF_HVAC_MODES, {})))
+        return self.async_show_form(step_id="hvac_modes", data_schema=_schema_hvac({"modes": self._data.get(CONF_HVAC_MODES, [])}))
 
     async def async_step_fan_modes(self, user_input=None):
         if user_input is not None:
-            self._data[CONF_FAN_MODES] = user_input
+            self._data[CONF_FAN_MODES] = user_input.get("modes", [])
             return await self.async_step_swing()
-        return self.async_show_form(step_id="fan_modes", data_schema=_schema_fan(self._data.get(CONF_FAN_MODES, {})))
+        return self.async_show_form(step_id="fan_modes", data_schema=_schema_fan({"modes": self._data.get(CONF_FAN_MODES, [])}))
 
     async def async_step_swing(self, user_input=None):
         if user_input is not None:
-            self._data[CONF_SWING] = user_input
+            self._data[CONF_SWING] = user_input.get("modes", [])
             return await self.async_step_preset_modes()
-        return self.async_show_form(step_id="swing", data_schema=_schema_swing(self._data.get(CONF_SWING, {})))
+        return self.async_show_form(step_id="swing", data_schema=_schema_swing({"modes": self._data.get(CONF_SWING, [])}))
+
+    async def async_step_grouping_attributes(self, user_input=None):
+        if user_input is not None:
+            self._data[CONF_GROUPING_ATTRIBUTES] = user_input.get(CONF_GROUPING_ATTRIBUTES, [])
+            self._data[CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE] = user_input.get(CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE, False)
+            return await self.async_step_temperature()
+        return self.async_show_form(step_id="grouping_attributes", data_schema=_schema_grouping(self._data))
 
     async def async_step_preset_modes(self, user_input=None):
         if user_input is not None:
-            self._data[CONF_PRESET_MODES] = user_input
+            self._data[CONF_PRESET_MODES] = user_input.get("modes", [])
             return await self.async_step_sensors()
-        return self.async_show_form(step_id="preset_modes", data_schema=_schema_preset(self._data.get(CONF_PRESET_MODES, {})))
+        return self.async_show_form(step_id="preset_modes", data_schema=_schema_preset({"modes": self._data.get(CONF_PRESET_MODES, [])}))
 
     async def async_step_sensors(self, user_input=None):
         if user_input is not None:
-            for key in (CONF_TEMPERATURE_SENSOR, CONF_HUMIDITY_SENSOR, CONF_POWER_SENSOR):
-                self._data[key] = user_input.get(key) or None
-            return self.async_create_entry(title=self._data.get("name", "Smart Remote"), data=self._data)
+            self._data.update(user_input)
+            return await self.async_step_profile_upload()
         return self.async_show_form(step_id="sensors", data_schema=_schema_sensors(self._data))
+
+    async def async_step_profile_upload(self, user_input=None):
+        errors = {}
+        if user_input is not None:
+            try:
+                file_id = user_input[CONF_PROFILE_FILE]
+                upload = await process_uploaded_file(self.hass, file_id)
+                raw = await self.hass.async_add_executor_job(upload.read_text, "utf-8")
+                profile = json.loads(raw)
+                errors, warnings = validate_climate_profile(profile, self._data)
+                if not errors:
+                    self._data[CONF_DEVICE_PROFILE] = profile
+                    self._profile_summary = profile_summary(profile)
+                    self._profile_warnings = "\n".join(warnings)
+                    return await self.async_step_profile_confirm()
+            except (OSError, UnicodeError, json.JSONDecodeError, TypeError, ValueError):
+                errors = {"base": "invalid_profile"}
+        return self.async_show_form(step_id="profile_upload", data_schema=_schema_profile_upload(), errors=errors)
+
+    async def async_step_profile_confirm(self, user_input=None):
+        if user_input is not None:
+            return self.async_create_entry(title=self._data["name"], data=self._data)
+        placeholders = dict(self._profile_summary)
+        placeholders["warnings"] = self._profile_warnings or "None"
+        return self.async_show_form(step_id="profile_confirm", data_schema=vol.Schema({}), description_placeholders=placeholders)
 
     @staticmethod
     @callback
@@ -407,159 +377,86 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Edit runtime configuration without changing the device/name."""
-
     def __init__(self, config_entry):
-        self._entry = config_entry
-        # Stage all changes here. Nothing is committed until the final Save.
-        self.result = dict(config_entry.options)
-        self._working = {**config_entry.data, **config_entry.options}
-        self._profile_summary: dict[str, str] = {}
-        self._profile_warnings = "None"
+        self.config_entry = config_entry
+        self._options = dict(config_entry.options)
+        self._device_type = self._get(CONF_DEVICE_TYPE, "climate")
+        self._remote_type = self._get(CONF_REMOTE_TYPE, "ha_remote")
+        self._remote_backend = self._get(CONF_REMOTE_BACKEND, "mqtt")
+        self._profile_summary = {}
+        self._profile_warnings = ""
 
-    def _defs(self):
-        return {**self._working, **self.result}
+    def _get(self, key, default=None):
+        if key in self._options: return self._options[key]
+        return self.config_entry.data.get(key, default)
 
     def _set(self, key, value):
-        self.result[key] = value
-        self._working[key] = value
+        self._options[key] = value
 
-    def _clear_transmitter_specific(self, keep_type: str):
-        """Remove stale values belonging to a different transmitter."""
-        # options override entry.data, so None deliberately masks legacy data.
-        if keep_type != "ha_remote":
-            for key in (
-                CONF_HA_DEVICE_ID, CONF_TARGET, CONF_GROUPING_ATTRIBUTES,
-                CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE, CONF_TEMPERATURE,
-                CONF_HVAC_MODES, CONF_FAN_MODES, CONF_SWING, CONF_PRESET_MODES,
-            ):
-                self._set(key, None)
-        if keep_type != "broadlink":
-            # Broadlink's remote entity is also used by HA Remote, so only clear
-            # it when switching to Z2M.
-            if keep_type == "zigbee2mqtt":
-                self._set(CONF_REMOTE_ENTITY, None)
-        if keep_type != "zigbee2mqtt":
-            self._set(CONF_MQTT_TOPIC, None)
-        if keep_type != "localtuya":
-            self._set(CONF_DEVICE_ID, None)
-            self._set(CONF_DP, None)
-        if keep_type == "ha_remote":
-            self._set(CONF_DEVICE_PROFILE, None)
+    def _defs(self):
+        d = dict(self.config_entry.data); d.update(self._options); return d
 
     async def async_step_init(self, user_input=None):
-        """Route Options Flow to the correct independent device type."""
-        if self._defs().get(CONF_DEVICE_TYPE, "climate") == "remote":
+        if self._device_type == "remote":
             return await self.async_step_remote_backend()
+        return await self.async_step_climate_transmitter()
 
-        current = self._defs().get(CONF_REMOTE_TYPE, "ha_remote")
+    async def async_step_climate_transmitter(self, user_input=None):
         if user_input is not None:
-            remote_type = user_input[CONF_REMOTE_TYPE]
-            self._set(CONF_REMOTE_TYPE, remote_type)
-            self._clear_transmitter_specific(remote_type)
-            if remote_type == "ha_remote":
-                return await self.async_step_target()
-            if remote_type == "broadlink":
-                return await self.async_step_broadlink()
-            if remote_type == "localtuya":
-                return await self.async_step_localtuya()
-            return await self.async_step_zigbee2mqtt()
-
-        schema = vol.Schema({
-            vol.Required(CONF_REMOTE_TYPE, default=current): selector.SelectSelector(
-                selector.SelectSelectorConfig(options=[
-                    selector.SelectOptionDict(value="ha_remote", label="Home Assistant Remote"),
-                    selector.SelectOptionDict(value="broadlink", label="Broadlink"),
-                    selector.SelectOptionDict(value="zigbee2mqtt", label="Zigbee2MQTT"),
-                    selector.SelectOptionDict(value="localtuya", label="LocalTuya Direct IR"),
-                ], mode=selector.SelectSelectorMode.DROPDOWN)
-            )
-        })
-        return self.async_show_form(step_id="init", data_schema=schema)
-
-    async def async_step_remote_backend(self, user_input=None):
-        current = self._defs().get(CONF_REMOTE_BACKEND, "mqtt")
-        if user_input is not None:
-            backend = user_input[CONF_REMOTE_BACKEND]
-            self._set(CONF_REMOTE_BACKEND, backend)
-            if backend == "mqtt":
+            new = user_input[CONF_REMOTE_TYPE]
+            if new != self._remote_type:
+                self._set(CONF_REMOTE_TYPE, new)
+                self._remote_type = new
+                self._set(CONF_REMOTE_ENTITY, None)
+                self._set(CONF_HA_DEVICE_ID, None)
+                self._set(CONF_MQTT_TOPIC, None)
                 self._set(CONF_DEVICE_ID, None)
                 self._set(CONF_DP, None)
-                return await self.async_step_remote_mqtt()
-            self._set(CONF_MQTT_TOPIC, None)
+            if new == "ha_remote": return await self.async_step_target()
+            if new == "broadlink": return await self.async_step_broadlink()
+            if new == "zigbee2mqtt": return await self.async_step_zigbee2mqtt()
+            return await self.async_step_localtuya()
+        return self.async_show_form(step_id="climate_transmitter", data_schema=_schema_climate_transmitter({CONF_REMOTE_TYPE:self._remote_type}))
+
+    async def async_step_remote_backend(self, user_input=None):
+        if user_input is not None:
+            new=user_input[CONF_REMOTE_BACKEND]
+            if new != self._remote_backend:
+                self._set(CONF_REMOTE_BACKEND,new); self._remote_backend=new
+                self._set(CONF_MQTT_TOPIC,None); self._set(CONF_DEVICE_ID,None); self._set(CONF_DP,None)
+            if new=="mqtt": return await self.async_step_remote_mqtt()
             return await self.async_step_remote_localtuya()
+        return self.async_show_form(step_id="remote_backend",data_schema=_schema_remote_backend({CONF_REMOTE_BACKEND:self._remote_backend}))
 
-        return self.async_show_form(
-            step_id="remote_backend",
-            data_schema=_schema_remote_backend({CONF_REMOTE_BACKEND: current}),
-        )
-
-    async def async_step_remote_mqtt(self, user_input=None):
-        errors = {}
+    async def async_step_remote_mqtt(self,user_input=None):
+        errors={}
         if user_input is not None:
-            topic = str(user_input[CONF_MQTT_TOPIC]).strip().rstrip("/")
-            if not (topic.endswith("/set") or "/set/" in topic):
-                errors["base"] = "invalid_mqtt_ir_topic"
+            topic=str(user_input[CONF_MQTT_TOPIC]).strip().rstrip("/")
+            if not (topic.endswith("/set") or "/set/" in topic): errors["base"]="invalid_mqtt_ir_topic"
             else:
-                self._set(CONF_MQTT_TOPIC, topic)
-                self._set(CONF_IR_PREFIX, user_input.get(CONF_IR_PREFIX, ""))
-                return await self.async_step_remote_finish()
-        return self.async_show_form(
-            step_id="remote_mqtt",
-            data_schema=_schema_remote_mqtt(self._defs()),
-            errors=errors,
-        )
+                self._set(CONF_MQTT_TOPIC,topic); self._set(CONF_IR_PREFIX,user_input.get(CONF_IR_PREFIX,"")); return self._save()
+        return self.async_show_form(step_id="remote_mqtt",data_schema=_schema_remote_mqtt(self._defs()),errors=errors)
 
-    async def async_step_remote_localtuya(self, user_input=None):
-        devices = discover_localtuya_devices(self.hass)
+    async def async_step_remote_localtuya(self,user_input=None):
+        devices=discover_localtuya_devices(self.hass)
         if user_input is not None:
-            self._set(CONF_DEVICE_ID, user_input[CONF_DEVICE_ID])
-            return await self.async_step_remote_localtuya_dp()
-        return self.async_show_form(
-            step_id="remote_localtuya",
-            data_schema=_schema_localtuya_device(devices, self._defs()),
-        )
+            self._set(CONF_DEVICE_ID,user_input[CONF_DEVICE_ID]); return await self.async_step_remote_localtuya_dp()
+        return self.async_show_form(step_id="remote_localtuya",data_schema=_schema_localtuya_device(devices,self._defs()))
 
-    async def async_step_remote_localtuya_dp(self, user_input=None):
-        devices = discover_localtuya_devices(self.hass)
-        selected = next(
-            (x for x in devices if x.device_id == self._defs().get(CONF_DEVICE_ID)),
-            None,
-        )
+    async def async_step_remote_localtuya_dp(self,user_input=None):
+        devices=discover_localtuya_devices(self.hass); selected=next((x for x in devices if x.device_id==self._get(CONF_DEVICE_ID)),None)
         if user_input is not None:
             try:
-                dp = int(user_input[CONF_DP])
-                if not 1 <= dp <= 999:
-                    raise ValueError
-            except (TypeError, ValueError):
-                return self.async_show_form(
-                    step_id="remote_localtuya_dp",
-                    data_schema=_schema_localtuya_dp(selected, self._defs()),
-                    errors={"base": "invalid_dp"},
-                )
-            self._set(CONF_DP, dp)
-            return await self.async_step_remote_localtuya_prefix()
-        return self.async_show_form(
-            step_id="remote_localtuya_dp",
-            data_schema=_schema_localtuya_dp(selected, self._defs()),
-        )
+                dp=int(user_input[CONF_DP])
+                if not 1 <= dp <= 999: raise ValueError
+            except (TypeError,ValueError): return self.async_show_form(step_id="remote_localtuya_dp",data_schema=_schema_localtuya_dp(selected,self._defs()),errors={"base":"invalid_dp"})
+            self._set(CONF_DP,dp); return await self.async_step_remote_localtuya_prefix()
+        return self.async_show_form(step_id="remote_localtuya_dp",data_schema=_schema_localtuya_dp(selected,self._defs()))
 
-    async def async_step_remote_localtuya_prefix(self, user_input=None):
+    async def async_step_remote_localtuya_prefix(self,user_input=None):
         if user_input is not None:
-            self._set(CONF_IR_PREFIX, user_input.get(CONF_IR_PREFIX, ""))
-            return await self.async_step_remote_finish()
-        return self.async_show_form(
-            step_id="remote_localtuya_prefix",
-            data_schema=_schema_remote_prefix(self._defs()),
-        )
-
-    async def async_step_remote_finish(self, user_input=None):
-        if user_input is not None:
-            return self.async_create_entry(title=self._entry.title, data=self.result)
-        return self.async_show_form(
-            step_id="remote_finish",
-            data_schema=vol.Schema({}),
-        )
+            self._set(CONF_IR_PREFIX,user_input.get(CONF_IR_PREFIX,"")); return self._save()
+        return self.async_show_form(step_id="remote_localtuya_prefix",data_schema=_schema_remote_prefix(self._defs()))
 
     async def async_step_target(self, user_input=None):
         if user_input is not None:
@@ -569,53 +466,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_grouping_attributes()
         return self.async_show_form(step_id="target", data_schema=_schema_target(self._defs()))
 
-    async def async_step_grouping_attributes(self, user_input=None):
-        if user_input is not None:
-            self._set(CONF_GROUPING_ATTRIBUTES, user_input.get(CONF_GROUPING_ATTRIBUTES, []))
-            self._set(CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE, user_input.get(CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE, False))
-            return await self.async_step_temperature()
-        return self.async_show_form(step_id="grouping_attributes", data_schema=_schema_grouping(self._defs()))
-
-    async def async_step_temperature(self, user_input=None):
-        if user_input is not None:
-            self._set(CONF_TEMPERATURE, user_input)
-            return await self.async_step_hvac_modes()
-        return self.async_show_form(step_id="temperature", data_schema=_schema_temperature(self._defs().get(CONF_TEMPERATURE, {}) or {}))
-
-    async def async_step_hvac_modes(self, user_input=None):
-        if user_input is not None:
-            self._set(CONF_HVAC_MODES, user_input)
-            return await self.async_step_fan_modes()
-        return self.async_show_form(step_id="hvac_modes", data_schema=_schema_hvac(self._defs().get(CONF_HVAC_MODES, {}) or {}))
-
-    async def async_step_fan_modes(self, user_input=None):
-        if user_input is not None:
-            self._set(CONF_FAN_MODES, user_input)
-            return await self.async_step_swing()
-        return self.async_show_form(step_id="fan_modes", data_schema=_schema_fan(self._defs().get(CONF_FAN_MODES, {}) or {}))
-
-    async def async_step_swing(self, user_input=None):
-        if user_input is not None:
-            self._set(CONF_SWING, user_input)
-            return await self.async_step_preset_modes()
-        return self.async_show_form(step_id="swing", data_schema=_schema_swing(self._defs().get(CONF_SWING, {}) or {}))
-
-    async def async_step_preset_modes(self, user_input=None):
-        if user_input is not None:
-            self._set(CONF_PRESET_MODES, user_input)
-            return await self.async_step_sensors()
-        return self.async_show_form(step_id="preset_modes", data_schema=_schema_preset(self._defs().get(CONF_PRESET_MODES, {}) or {}))
-
     async def async_step_broadlink(self, user_input=None):
         if user_input is not None:
             self._set(CONF_REMOTE_ENTITY, user_input["entity_id"])
-            return await self.async_step_profile_upload()
+            return await self.async_step_grouping_attributes()
         return self.async_show_form(step_id="broadlink", data_schema=_schema_broadlink(self._defs()))
 
     async def async_step_zigbee2mqtt(self, user_input=None):
         if user_input is not None:
             self._set(CONF_MQTT_TOPIC, user_input[CONF_MQTT_TOPIC])
-            return await self.async_step_profile_upload()
+            return await self.async_step_grouping_attributes()
         return self.async_show_form(step_id="zigbee2mqtt", data_schema=_schema_z2m(self._defs()))
 
     async def async_step_localtuya(self, user_input=None):
@@ -627,78 +487,68 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_localtuya_dp(self, user_input=None):
         devices = discover_localtuya_devices(self.hass)
-        selected = next((x for x in devices if x.device_id == self._defs().get(CONF_DEVICE_ID)), None)
+        selected = next((x for x in devices if x.device_id == self._get(CONF_DEVICE_ID)), None)
         if user_input is not None:
             try:
                 dp = int(user_input[CONF_DP])
-                if not 1 <= dp <= 999:
-                    raise ValueError
+                if not 1 <= dp <= 999: raise ValueError
             except (TypeError, ValueError):
-                return self.async_show_form(step_id="localtuya_dp", data_schema=_schema_localtuya_dp(selected, self._defs()), errors={"base": "invalid_dp"})
+                return self.async_show_form(step_id="localtuya_dp", data_schema=_schema_localtuya_dp(selected, self._defs()), errors={"base":"invalid_dp"})
             self._set(CONF_DP, dp)
-            return await self.async_step_profile_upload()
+            return await self.async_step_temperature()
         return self.async_show_form(step_id="localtuya_dp", data_schema=_schema_localtuya_dp(selected, self._defs()))
 
-    async def async_step_profile_upload(self, user_input=None):
-        errors = {}
-        details = (
-            "Upload a Climate Profile JSON file. HVAC, Fan and Temperature "
-            "are required; Swing and Preset are optional."
-        )
+    async def async_step_temperature(self, user_input=None):
         if user_input is not None:
-            try:
-                upload_id = user_input[CONF_PROFILE_FILE]
+            self._set(CONF_TEMPERATURE, dict(user_input)); return await self.async_step_hvac_modes()
+        return self.async_show_form(step_id="temperature", data_schema=_schema_temperature(self._get(CONF_TEMPERATURE)))
 
-                def _read_upload():
-                    with process_uploaded_file(self.hass, upload_id) as path:
-                        return json.loads(path.read_text(encoding="utf-8"))
-
-                profile = await self.hass.async_add_executor_job(_read_upload)
-                result = validate_climate_profile(profile, self._defs()[CONF_REMOTE_TYPE])
-                if not result.valid:
-                    errors["base"] = "profile_validation_failed"
-                    details = "Profile cannot be used because:\n• " + "\n• ".join(result.errors)
-                    if result.warnings:
-                        details += "\n\nWarnings:\n• " + "\n• ".join(result.warnings)
-                else:
-                    self._set(CONF_DEVICE_PROFILE, profile)
-                    self._profile_summary = profile_summary(profile)
-                    self._profile_warnings = "; ".join(result.warnings) or "None"
-                    return await self.async_step_profile_review()
-            except json.JSONDecodeError as err:
-                errors["base"] = "invalid_json"
-                details = f"The file is not valid JSON: line {err.lineno}, column {err.colno}: {err.msg}."
-            except UnicodeDecodeError:
-                errors["base"] = "invalid_encoding"
-                details = "The file is not UTF-8 text. Save the JSON file as UTF-8 and upload it again."
-            except (OSError, ValueError, KeyError) as err:
-                errors["base"] = "profile_read_failed"
-                details = f"The uploaded profile could not be read: {err}."
-
-        return self.async_show_form(
-            step_id="profile_upload", data_schema=_schema_profile_upload(), errors=errors,
-            description_placeholders={"details": details},
-        )
-
-    async def async_step_profile_review(self, user_input=None):
+    async def async_step_hvac_modes(self, user_input=None):
         if user_input is not None:
-            return await self.async_step_sensors()
-        ph = dict(self._profile_summary)
-        ph["warnings"] = self._profile_warnings
-        return self.async_show_form(
-            step_id="profile_review", data_schema=vol.Schema({}),
-            description_placeholders=ph,
-        )
+            self._set(CONF_HVAC_MODES, user_input["modes"]); return await self.async_step_fan_modes()
+        return self.async_show_form(step_id="hvac_modes", data_schema=_schema_hvac({"modes":self._get(CONF_HVAC_MODES,[])}))
+
+    async def async_step_fan_modes(self, user_input=None):
+        if user_input is not None:
+            self._set(CONF_FAN_MODES, user_input.get("modes",[])); return await self.async_step_swing()
+        return self.async_show_form(step_id="fan_modes", data_schema=_schema_fan({"modes":self._get(CONF_FAN_MODES,[])}))
+
+    async def async_step_swing(self, user_input=None):
+        if user_input is not None:
+            self._set(CONF_SWING, user_input.get("modes",[])); return await self.async_step_preset_modes()
+        return self.async_show_form(step_id="swing", data_schema=_schema_swing({"modes":self._get(CONF_SWING,[])}))
+
+    async def async_step_grouping_attributes(self, user_input=None):
+        if user_input is not None:
+            self._set(CONF_GROUPING_ATTRIBUTES,user_input.get(CONF_GROUPING_ATTRIBUTES,[])); self._set(CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE,user_input.get(CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE,False)); return await self.async_step_temperature()
+        return self.async_show_form(step_id="grouping_attributes",data_schema=_schema_grouping(self._defs()))
+
+    async def async_step_preset_modes(self, user_input=None):
+        if user_input is not None:
+            self._set(CONF_PRESET_MODES, user_input.get("modes",[])); return await self.async_step_sensors()
+        return self.async_show_form(step_id="preset_modes", data_schema=_schema_preset({"modes":self._get(CONF_PRESET_MODES,[])}))
 
     async def async_step_sensors(self, user_input=None):
         if user_input is not None:
-            for key in (CONF_TEMPERATURE_SENSOR, CONF_HUMIDITY_SENSOR, CONF_POWER_SENSOR):
-                self._set(key, user_input.get(key) or None)
-            return await self.async_step_finish()
+            for k,v in user_input.items(): self._set(k,v)
+            return await self.async_step_profile_upload()
         return self.async_show_form(step_id="sensors", data_schema=_schema_sensors(self._defs()))
 
-    async def async_step_finish(self, user_input=None):
+    async def async_step_profile_upload(self, user_input=None):
+        errors={}
         if user_input is not None:
-            return self.async_create_entry(title=self._entry.title, data=self.result)
-        return self.async_show_form(step_id="finish", data_schema=vol.Schema({}))
+            try:
+                upload=await process_uploaded_file(self.hass,user_input[CONF_PROFILE_FILE]); raw=await self.hass.async_add_executor_job(upload.read_text,"utf-8"); profile=json.loads(raw)
+                config=self._defs(); errors,warnings=validate_climate_profile(profile,config)
+                if not errors:
+                    self._set(CONF_DEVICE_PROFILE,profile); self._profile_summary=profile_summary(profile); self._profile_warnings="\n".join(warnings); return await self.async_step_profile_confirm()
+            except (OSError,UnicodeError,json.JSONDecodeError,TypeError,ValueError): errors={"base":"invalid_profile"}
+        return self.async_show_form(step_id="profile_upload",data_schema=_schema_profile_upload(),errors=errors)
 
+    async def async_step_profile_confirm(self,user_input=None):
+        if user_input is not None: return self._save()
+        placeholders=dict(self._profile_summary); placeholders["warnings"]=self._profile_warnings or "None"
+        return self.async_show_form(step_id="profile_confirm",data_schema=vol.Schema({}),description_placeholders=placeholders)
+
+    def _save(self):
+        return self.async_create_entry(title="", data=self._options)
