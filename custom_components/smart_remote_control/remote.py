@@ -36,7 +36,7 @@ class SmartRemoteIREntity(RemoteEntity):
     def __init__(self,hass,entry_id,config):
         self.hass=hass; self._config=config; self._backend=config[CONF_REMOTE_BACKEND]
         self._attr_name=config.get("name") or "Smart Remote"; self._attr_unique_id=config.get("unique_id") or entry_id
-        self._attr_device_info=DeviceInfo(identifiers={(DOMAIN,self._attr_unique_id)},name=self._attr_name,manufacturer="Smart Remote Control",model=f"IR Remote ({self._backend})")
+        self._attr_device_info=DeviceInfo(identifiers={(DOMAIN,self._attr_unique_id)},name=self._attr_name,manufacturer="Smart Remote Control",model="IR Remote Blaster")
     async def async_turn_on(self,**kwargs): self._attr_is_on=True; self.async_write_ha_state()
     async def async_turn_off(self,**kwargs): self._attr_is_on=False; self.async_write_ha_state()
     async def async_send_command(self,command: Iterable[str],**kwargs: Any):
