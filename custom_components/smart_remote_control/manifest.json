@@ -5,10 +5,12 @@
   "config_flow": true,
   "documentation": "https://github.com/zookzon/Smart-Remote-Control",
   "requirements": [],
+  "dependencies": [
+    "file_upload"
+  ],
   "codeowners": [
     "@zookzon"
   ],
   "iot_class": "local_push",
-  "translation_key": "smart_remote_control",
   "issue_tracker": "https://github.com/zookzon/Smart-Remote-Control/issues"
 }
