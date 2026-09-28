@@ -1,6 +1,6 @@
-# Smart Remote Control Test Matrix
+# Climate Test Matrix
 
-Public release baseline: Smart Remote Control v1.0.0, derived from the hardware-tested development line through v3.4.17.
+Public release baseline: Smart Remote Control v1.0.0 (derived from the hardware-tested development line through v3.4.17).
 
 | Area | Automated | Real hardware / HA | Status |
 |---|---:|---:|---|
@@ -18,9 +18,6 @@ Public release baseline: Smart Remote Control v1.0.0, derived from the hardware-
 | LocalTuya single-DP JSON-string payload | Yes | Yes | Verified |
 | OFF → ON → 0.8 s → current state | Yes | Yes | Verified |
 | 0.5 s send coordination / latest-state-wins | Yes | Yes | Verified in use |
-| Standalone MQTT Remote | Yes | Yes | Verified |
-| Standalone LocalTuya Direct IR Remote | Yes | Yes | Verified |
-| Remote Config Flow / Options Flow | Yes | Yes | Verified |
 | Broadlink Base64 service-call path | Yes | Via Broadlink2SmartIR bridge + real IR | Pipeline verified |
 | Broadlink physical hardware | N/A | No | Not hardware verified |
 
@@ -41,7 +38,7 @@ The 0.8-second value was selected after real-device testing and should not be ch
 
 ## Release regression rule
 
-Before changing Climate core, transmitter routing, profile resolution, Remote transport, or power sequencing:
+Before changing Climate core, transmitter routing, profile resolution, or power sequencing:
 
 1. Run the complete automated test suite.
 2. Do not change the LocalTuya payload format without a hardware regression test.

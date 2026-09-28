@@ -3,12 +3,12 @@
 [![Release](https://img.shields.io/github/v/release/zookzon/Smart-Remote-Control?label=release)](https://github.com/zookzon/Smart-Remote-Control/releases)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5%2B-41BDF5)
 ![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5)
-![License](https://img.shields.io/badge/License-Non--Commercial-orange)
+![License](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-orange)
 [![HACS Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml)
 [![Hassfest Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml)
 [![Tests](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml)
 
-**Smart Remote Control** is a Home Assistant custom integration for turning IR transmitters into easy-to-use Home Assistant entities. Version **1.0.0** provides **Climate** for stateful air-conditioner control and **Remote** for sending existing IR codes through a normal Home Assistant `remote` entity.
+**Smart Remote Control** is a Home Assistant custom integration for turning IR transmitters into easy-to-use Home Assistant entities. Version **1.0.0** provides two device types: **Climate** for stateful air-conditioner control and **Remote** for sending existing IR codes through a simple `remote` entity.
 
 The project is designed around a practical rule: **you should be able to reuse IR codes you already have**. A standalone Remote does not force you to relearn codes into another database.
 
@@ -19,12 +19,12 @@ The project is designed around a practical rule: **you should be able to reuse I
 - Home Assistant `climate` entity with HVAC mode, temperature, fan mode, Swing and Preset support.
 - Four transmitter paths: **Home Assistant Remote**, **Broadlink**, **Zigbee2MQTT**, and **LocalTuya Direct IR**.
 - JSON IR profiles for Broadlink, Zigbee2MQTT and LocalTuya.
-- Home Assistant Remote learned-command mode.
+- Home Assistant Remote learned-command mode for users who already use HA `remote` entities.
 - Optional temperature, humidity and power-state sensors.
 - Remembered state and tested power-on sequence: **ON → wait 0.8 s → current/remembered state**.
 - Minimum ordinary send interval of **0.5 s** with latest-state-wins behavior.
 - Profile validation before a Climate entity is created.
-- Config Flow and Options Flow.
+- Config Flow and Options Flow; no YAML configuration is required for the integration itself.
 
 ### Remote
 
@@ -33,7 +33,7 @@ The project is designed around a practical rule: **you should be able to reuse I
 - **LocalTuya Direct IR** backend.
 - Optional user-defined IR-code prefix.
 - LocalTuya device and DP discovery with manual DP fallback.
-- Remote Options Flow for changing backend configuration later.
+- Remote Options Flow for changing the backend configuration later.
 
 > **Fan is not included in v1.0.0.** It is planned as a later feature so the first public release can keep the tested Climate + Remote baseline stable.
 
@@ -44,7 +44,7 @@ The project is designed around a practical rule: **you should be able to reuse I
 | Home Assistant Remote / learned commands | ✅ | Use the existing HA remote directly | Hardware tested |
 | Zigbee2MQTT / MQTT IR | ✅ | ✅ | Hardware tested |
 | LocalTuya Direct IR | ✅ | ✅ | Hardware tested |
-| Broadlink `remote.send_command` | ✅ | Use the Broadlink remote directly | Service/payload path verified; physical Broadlink hardware not yet tested by this project |
+| Broadlink `remote.send_command` | ✅ | Use the Broadlink remote directly | Smart Remote Control service/payload path verified; physical Broadlink hardware not yet tested by this project |
 
 See [TEST_MATRIX.md](TEST_MATRIX.md) for the exact verification boundary.
 
@@ -67,7 +67,12 @@ Then:
 
 1. Download the latest release from GitHub.
 2. Copy `custom_components/smart_remote_control` into your Home Assistant configuration directory.
-3. The final path must be `<config>/custom_components/smart_remote_control/`.
+3. The final path must be:
+
+   ```text
+   <config>/custom_components/smart_remote_control/
+   ```
+
 4. Restart Home Assistant.
 5. Go to **Settings → Devices & services → Add Integration → Smart Remote Control**.
 
@@ -83,9 +88,11 @@ Add Integration
 → Choose Climate Transmitter
 ```
 
-### Home Assistant Remote
+The remaining steps depend on the transmitter.
 
-Choose this when IR commands are already learned by a Home Assistant `remote` integration.
+### Climate with Home Assistant Remote
+
+Choose **Home Assistant Remote** when the IR commands are already learned by a Home Assistant `remote` integration.
 
 1. Select the existing Remote entity.
 2. Enter the **Learn Device ID** used by that remote.
@@ -94,20 +101,30 @@ Choose this when IR commands are already learned by a Home Assistant `remote` in
 5. Optionally select temperature, humidity and power sensors.
 6. Finish the flow.
 
-On OFF → ON, Smart Remote Control attempts the learned `on` command first and then, after **0.8 seconds**, sends the remembered/current Climate state. A missing required learned command is surfaced instead of silently inventing one.
+On OFF → ON, Smart Remote Control attempts the learned `on` command first and then, after **0.8 seconds**, sends the remembered/current Climate state. If a required learned command does not exist, the integration surfaces the missing-command condition instead of silently inventing a command.
 
-### Broadlink
+### Climate with Broadlink
+
+Choose **Broadlink** when your Climate profile contains Broadlink-compatible IR data.
 
 1. Select the Broadlink Home Assistant `remote` entity.
 2. Upload a Climate JSON profile.
-3. Review the profile summary.
+3. Review the profile summary shown by the Config Flow.
 4. Complete optional sensor selection and create the Climate entity.
 
-Supported Broadlink profile encodings are `Base64`, `Hex`, and `Pronto`. At send time the integration calls Home Assistant `remote.send_command` with a Broadlink-compatible `b64:` token. Base64 is passed through; Hex and Pronto are converted before sending.
+Supported profile encodings for Broadlink are:
 
-**Verification note:** the service-call/payload path has been exercised end-to-end through the project's Broadlink2SmartIR test bridge and real IR reception. A physical Broadlink transmitter has not yet been tested by this project.
+- `Base64`
+- `Hex`
+- `Pronto`
 
-### Zigbee2MQTT
+At send time the integration calls Home Assistant `remote.send_command` with a Broadlink-compatible `b64:` token. Base64 is passed through; Hex and Pronto profiles are converted before sending.
+
+**Verification note:** the Broadlink service-call/payload path has been exercised end-to-end through the project's Broadlink2SmartIR test bridge and a real IR receiver/air conditioner. A physical Broadlink transmitter has not yet been tested by this project.
+
+### Climate with Zigbee2MQTT
+
+Choose **Zigbee2MQTT** for an MQTT IR transmitter.
 
 1. Enter the MQTT command topic used by your device.
 2. Upload a matching Zigbee2MQTT Climate JSON profile.
@@ -116,15 +133,17 @@ Supported Broadlink profile encodings are `Base64`, `Hex`, and `Pronto`. At send
 
 Climate profiles support `Raw` and `Base64` command encodings for this path.
 
-### LocalTuya Direct IR
+### Climate with LocalTuya Direct IR
+
+Choose **LocalTuya Direct IR** when the IR blaster is already configured in LocalTuya.
 
 1. Smart Remote Control discovers LocalTuya devices already present in Home Assistant.
 2. Select the IR device. Manual Device ID entry is available if discovery cannot provide it.
-3. Select the **IR Send DP**. Known DPs are offered when LocalTuya exposes them; DP 201 is marked recommended only when actually present.
+3. Select the **IR Send DP**. Known DPs are offered when LocalTuya exposes them; DP 201 is marked recommended only when it is actually present.
 4. Upload a LocalTuya Climate profile using `Raw` encoding.
 5. Review the profile and finish setup.
 
-The tested send format is intentionally fixed:
+The tested LocalTuya send format is intentionally fixed:
 
 ```text
 raw IR code
@@ -134,9 +153,11 @@ raw IR code
 → localtuya.set_dp
 ```
 
+Do not change this payload format casually; it was selected after real hardware testing.
+
 ## Climate IR profile format
 
-Profiles are JSON files. The validator checks the declared controller, encoding, modes, temperature range and command tree before setup is allowed to continue.
+Profiles are JSON files. The validator checks the declared controller, encoding, modes, temperature range and the command tree before setup is allowed to continue.
 
 Important top-level fields include:
 
@@ -151,15 +172,21 @@ Important top-level fields include:
   "precision": 1,
   "operationModes": ["cool", "dry", "fan_only"],
   "fanModes": ["auto", "low", "medium", "high"],
-  "commands": {"off": "IR_CODE_HERE"}
+  "commands": {
+    "off": "IR_CODE_HERE"
+  }
 }
 ```
 
-Use the examples in [`custom_components/smart_remote_control/profile_templates`](custom_components/smart_remote_control/profile_templates) as the starting point. `commands.on` is optional. When present, OFF → ON sends it, waits **0.8 s**, then sends the current/remembered full state. `commands.off` is required.
+The complete command tree depends on the declared HVAC/fan/Swing/Preset modes. Use the examples in [`custom_components/smart_remote_control/profile_templates`](custom_components/smart_remote_control/profile_templates) as the starting point rather than building a large profile from memory.
+
+The profile can optionally contain `commands.on`. When present, an OFF → ON transition sends that command, waits **0.8 s**, then sends the current/remembered full state. `commands.off` is required.
 
 Swing and Preset can each be represented either as part of the full-state command tree or as standalone commands. The validator rejects mixed/ambiguous structures.
 
 ## Creating a standalone Remote entity
+
+Choose Remote when you want a simple HA `remote` entity that accepts the IR codes you already have:
 
 ```text
 Add Integration
@@ -169,46 +196,75 @@ Add Integration
 → Choose Backend
 ```
 
-### MQTT / Zigbee2MQTT
+### Remote with MQTT / Zigbee2MQTT
 
 The Remote backend supports two topic forms.
 
-A property-specific topic such as:
+#### Property-specific topic
+
+Example:
 
 ```text
 zigbee2mqtt/ir_blaster/set/ir_code_to_send
+```
+
+or another property supported by the device:
+
+```text
 zigbee2mqtt/ir_blaster/set/code_to_send
 ```
 
-publishes the IR code itself as the payload. The property name is controlled by the topic you enter.
+For a topic ending in `/set/property`, Smart Remote Control publishes the IR code itself as the payload. The property name is therefore controlled entirely by the topic you enter.
 
-A base topic:
+#### Base `/set` topic
+
+Example:
 
 ```text
 zigbee2mqtt/ir_blaster/set
 ```
 
-publishes automatically as:
+For a topic ending exactly in `/set`, Smart Remote Control automatically publishes:
 
 ```json
 {"ir_code_to_send":"YOUR_IR_CODE"}
 ```
 
+This is useful for Zigbee2MQTT devices that accept the normal object payload on their base `set` topic.
+
 ### Optional IR Code Prefix
 
-If the configured prefix is `b64:`, a command such as `b64:JgAAAA...` is accepted and the prefix is removed before the backend sends the code. If Prefix is empty, the command is sent as-is. A configured prefix is strict: a command that does not start with it is rejected.
+The Remote setup allows an optional prefix. This is useful when an existing caller sends codes in a Broadlink-like or otherwise prefixed representation.
 
-### LocalTuya Direct IR Remote
+If the configured prefix is:
 
-1. Choose **LocalTuya Direct IR**.
+```text
+b64:
+```
+
+then a command such as:
+
+```text
+b64:JgAAAA...
+```
+
+is accepted and the configured prefix is removed before the backend sends the code. If the Prefix field is empty, the command is sent as-is.
+
+A configured prefix is strict: a command that does not start with that prefix is rejected instead of being modified unpredictably.
+
+### Remote with LocalTuya Direct IR
+
+1. Choose **LocalTuya Direct IR** as the Remote backend.
 2. Select the discovered LocalTuya device.
 3. Select or manually enter the IR Send DP.
 4. Set an optional IR Code Prefix, or leave it blank.
 5. Create the Remote entity.
 
-This uses the same tested LocalTuya Direct IR payload format as Climate.
+This Remote uses the same tested LocalTuya Direct IR payload format as the Climate path.
 
 ## Sending an IR code through the created Remote
+
+The entity implements Home Assistant's normal `remote.send_command` behavior. A typical automation/action is conceptually:
 
 ```yaml
 action: remote.send_command
@@ -219,46 +275,71 @@ data:
     - "YOUR_IR_CODE"
 ```
 
-Unlike a learned-command-only remote, the Smart Remote Control Remote interprets the supplied command string as the IR code for its configured backend.
+The important difference from a learned-command-only remote is that the Smart Remote Control Remote interprets the supplied command string as the IR code for its configured backend.
 
 ## Changing settings later
 
-Open **Settings → Devices & services → Smart Remote Control → Configure**. Climate and Remote entries have separate Options Flows.
+Open:
+
+**Settings → Devices & services → Smart Remote Control → Configure**
+
+Climate and Remote entries have separate Options Flows. Remote options allow the MQTT or LocalTuya backend settings to be changed without entering the Climate workflow.
 
 ## Timing behavior
 
-- **0.8 s power-on settle delay** between ON and the remembered/current state.
+Two timings are part of the tested Climate baseline:
+
+- **0.8 s power-on settle delay** between the ON command and the remembered/current state.
 - **0.5 s minimum ordinary send interval** for Climate state changes.
-- Rapid ordinary Climate changes use latest-state-wins behavior.
+
+Rapid ordinary Climate changes use latest-state-wins behavior so an obsolete intermediate state does not need to be transmitted after a newer state has replaced it.
 
 ## Troubleshooting
 
-**Integration does not appear after manual installation:** check that `manifest.json` is at `<config>/custom_components/smart_remote_control/manifest.json`, then restart Home Assistant.
+**The integration does not appear after manual installation**  
+Check that `manifest.json` is at `<config>/custom_components/smart_remote_control/manifest.json`, then restart Home Assistant.
 
-**LocalTuya device is not discovered:** confirm the device already exists in LocalTuya. Manual Device ID / DP fallback is available where appropriate.
+**LocalTuya device is not discovered**  
+Confirm the device already exists in the LocalTuya integration. The setup flow also provides manual Device ID / DP fallback where appropriate.
 
-**LocalTuya sends but the appliance does not react:** verify the actual IR Send DP and that the Climate profile uses `Raw` encoding.
+**LocalTuya sends but the appliance does not react**  
+Verify that you selected the actual IR Send DP and that the IR code/profile is `Raw`. Do not use a Broadlink `b64:` code as a LocalTuya raw code unless you intentionally configured and understand the prefix conversion at the standalone Remote layer.
 
-**MQTT Remote does not send:** the topic must end in `/set` or `/set/property`. `/set` automatically uses `ir_code_to_send`; `/set/property` publishes the code itself.
+**MQTT Remote does not send**  
+Check the topic carefully. It must end in `/set` or `/set/property`. For `/set`, the integration automatically uses `ir_code_to_send`; for `/set/property`, the code itself is published to that topic.
 
-**Climate will not turn on from OFF:** for a learned HA Remote, make sure the required `on` learned command exists. For profile-based Climate, `commands.on` is optional. The tested follow-up delay is 0.8 seconds.
+**Climate will not turn on from OFF**  
+For a learned HA Remote, make sure the required `on` learned command exists. For profile-based Climate, `commands.on` is optional; when it exists it is used before the current state. The tested follow-up delay is 0.8 seconds.
 
-**Broadlink physical hardware issue:** include the Home Assistant Broadlink remote entity, profile encoding and logs in the issue report. Physical Broadlink hardware is outside the v1.0.0 hardware-tested boundary.
+**Broadlink does not work on physical hardware**  
+Please report the exact Home Assistant Broadlink remote entity, profile encoding and logs. The service/payload pipeline is verified, but physical Broadlink hardware is explicitly outside the v1.0.0 hardware-tested boundary.
 
 ## Verification and tests
 
-The development build used to create v1.0.0 passed **78 automated regression tests** before publication. GitHub Actions run the suite again on pushes and pull requests alongside HACS and Hassfest validation.
+The development build used to create v1.0.0 passed **78 automated regression tests** before publication. GitHub Actions run the test suite again on pushes and pull requests, alongside HACS and Hassfest validation.
+
+The repository deliberately distinguishes between **hardware tested** and **interface/pipeline verified** behavior. See [TEST_MATRIX.md](TEST_MATRIX.md).
 
 ## Versioning
 
-Public releases use Semantic Versioning beginning at **v1.0.0**. Patch releases are bug fixes, minor releases add backwards-compatible features, and major releases are reserved for breaking public changes. Internal development build numbers are not the public version history.
+Public releases use Semantic Versioning beginning at **v1.0.0**.
+
+- Patch (`1.0.x`) — bug fixes.
+- Minor (`1.x.0`) — backwards-compatible features, such as a new device type.
+- Major (`x.0.0`) — breaking public changes.
+
+Internal development build numbers used before the first public release are not the public version history.
 
 ## License
 
-Project-original portions are © 2026 zookzon and are provided under the repository's **Non-Commercial License**. Personal, educational, research and hobby use is allowed; commercial use requires prior written permission.
+Project-original portions are © 2026 zookzon and are licensed under the **PolyForm Noncommercial License 1.0.0**. The license permits the software to be used for noncommercial purposes subject to its terms. Commercial use is not granted by this license and requires separate permission from the copyright holder.
 
-This is **not an OSI-approved open-source license** because commercial use is restricted. Third-party material remains under its own license. See [LICENSE](LICENSE) and [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
+PolyForm Noncommercial 1.0.0 is not an OSI-approved open-source license because it restricts use to noncommercial purposes. Third-party material remains under its own license. See [LICENSE](LICENSE) and [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
+
+## Credits
+
+Smart Remote Control was developed with reference to the Home Assistant IR-control ecosystem and SmartIR-related projects. See [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md) for details.
 
 ## Support
 
-Please use the [GitHub issue tracker](https://github.com/zookzon/Smart-Remote-Control/issues) for reproducible bugs. Include your Home Assistant version, selected backend/transmitter, relevant configuration with secrets removed, logs, and whether the behavior was tested on real IR hardware.
+Please use the [GitHub issue tracker](https://github.com/zookzon/Smart-Remote-Control/issues) for reproducible bugs. Include your Home Assistant version, selected backend/transmitter, relevant configuration (with secrets removed), logs, and whether the behavior was tested on real IR hardware.
