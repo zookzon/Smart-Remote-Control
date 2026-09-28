@@ -1,0 +1,96 @@
+{
+  "manufacturer": "Example",
+  "supportedModels": [
+    "MODEL-STANDALONE"
+  ],
+  "supportedController": "Broadlink",
+  "commandsEncoding": "Base64",
+  "temperatureUnit": "C",
+  "minTemperature": 16,
+  "maxTemperature": 30,
+  "precision": 1,
+  "operationModes": [
+    "cool"
+  ],
+  "fanModes": [
+    "auto",
+    "medium",
+    "high"
+  ],
+  "swingModes": [
+    "off",
+    "vertical"
+  ],
+  "swingType": "standalone",
+  "swingCommands": {
+    "off": "BASE64_SWING_OFF",
+    "vertical": "BASE64_SWING_VERTICAL"
+  },
+  "presetModes": [
+    "normal",
+    "sleep",
+    "turbo"
+  ],
+  "presetType": "standalone",
+  "presetCommands": {
+    "normal": "BASE64_PRESET_NORMAL",
+    "sleep": "BASE64_PRESET_SLEEP",
+    "turbo": "BASE64_PRESET_TURBO"
+  },
+  "commands": {
+    "off": "BASE64_IR_CODE",
+    "cool": {
+      "auto": {
+        "16": "BASE64_IR_CODE",
+        "17": "BASE64_IR_CODE",
+        "18": "BASE64_IR_CODE",
+        "19": "BASE64_IR_CODE",
+        "20": "BASE64_IR_CODE",
+        "21": "BASE64_IR_CODE",
+        "22": "BASE64_IR_CODE",
+        "23": "BASE64_IR_CODE",
+        "24": "BASE64_IR_CODE",
+        "25": "BASE64_IR_CODE",
+        "26": "BASE64_IR_CODE",
+        "27": "BASE64_IR_CODE",
+        "28": "BASE64_IR_CODE",
+        "29": "BASE64_IR_CODE",
+        "30": "BASE64_IR_CODE"
+      },
+      "medium": {
+        "16": "BASE64_IR_CODE",
+        "17": "BASE64_IR_CODE",
+        "18": "BASE64_IR_CODE",
+        "19": "BASE64_IR_CODE",
+        "20": "BASE64_IR_CODE",
+        "21": "BASE64_IR_CODE",
+        "22": "BASE64_IR_CODE",
+        "23": "BASE64_IR_CODE",
+        "24": "BASE64_IR_CODE",
+        "25": "BASE64_IR_CODE",
+        "26": "BASE64_IR_CODE",
+        "27": "BASE64_IR_CODE",
+        "28": "BASE64_IR_CODE",
+        "29": "BASE64_IR_CODE",
+        "30": "BASE64_IR_CODE"
+      },
+      "high": {
+        "16": "BASE64_IR_CODE",
+        "17": "BASE64_IR_CODE",
+        "18": "BASE64_IR_CODE",
+        "19": "BASE64_IR_CODE",
+        "20": "BASE64_IR_CODE",
+        "21": "BASE64_IR_CODE",
+        "22": "BASE64_IR_CODE",
+        "23": "BASE64_IR_CODE",
+        "24": "BASE64_IR_CODE",
+        "25": "BASE64_IR_CODE",
+        "26": "BASE64_IR_CODE",
+        "27": "BASE64_IR_CODE",
+        "28": "BASE64_IR_CODE",
+        "29": "BASE64_IR_CODE",
+        "30": "BASE64_IR_CODE"
+      }
+    }
+  }
+}

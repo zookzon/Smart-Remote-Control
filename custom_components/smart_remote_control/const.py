@@ -20,6 +20,8 @@ CONF_FAN_MODES = "fan_modes"
 CONF_PRESET_MODES = "preset_modes"
 CONF_SWING = "swing"
 CONF_HVAC_MODES = "hvac_modes"
+
+# Constants for Remote Control and Sensors (โค้ดที่ถูกเพิ่ม)
 CONF_MQTT_TOPIC = "mqtt_topic"
 CONF_REMOTE_ENTITY = "remote_entity"
 CONF_TEMPERATURE_SENSOR = "temperature_sensor"
@@ -28,11 +30,21 @@ CONF_POWER_SENSOR = "power_sensor"
 CONF_DEVICE_ID = "device_id"
 CONF_DP = "dp"
 CONF_HA_DEVICE_ID = "ha_device_id"
+# สิ้นสุดโค้ดที่ถูกเพิ่ม
+
+# Grouping attributes (ใช้กับ ha_remote)
 CONF_GROUPING_ATTRIBUTES = "grouping_attributes"
 CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE = "grouping_attributes_as_sequence"
+
+# Sensors
 CONF_CURRENT_TEMPERATURE_SENSOR_ENTITY_ID = "current_temperature_sensor_entity_id"
 CONF_CURRENT_HUMIDITY_SENSOR_ENTITY_ID = "current_humidity_sensor_entity_id"
+
+# Attribute for temperature range
 ATTR_TEMPERATURE_RANGE = "temperature_range"
+# Device types
 CONF_DEVICE_TYPE = "device_type"
+
+# Standalone Remote entity
 CONF_REMOTE_BACKEND = "remote_backend"
 CONF_IR_PREFIX = "ir_prefix"

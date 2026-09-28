@@ -1,0 +1,358 @@
+{
+  "title": "Smart Remote Control",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Device Setup",
+        "description": "Choose which Smart Remote Control entity to create.",
+        "data": {
+          "name": "Device Name",
+          "device_type": "Device Type"
+        }
+      },
+      "target": {
+        "title": "Target",
+        "description": "Select a target entity and provide Learn Device ID",
+        "data": {
+          "entity_id": "Entity",
+          "ha_device_id": "Learn Device ID"
+        }
+      },
+      "zigbee2mqtt": {
+        "title": "Zigbee2MQTT",
+        "description": "Enter the MQTT command topic for the IR transmitter.",
+        "data": {
+          "mqtt_topic": "MQTT Topic"
+        }
+      },
+      "localtuya": {
+        "title": "LocalTuya Direct IR",
+        "description": "Select a device already configured in LocalTuya. If discovery is unavailable, enter the LocalTuya Device ID manually.",
+        "data": {
+          "device_id": "LocalTuya Device"
+        }
+      },
+      "temperature": {
+        "title": "Temperature",
+        "description": "Default temperature settings",
+        "data": {
+          "mode": "Mode",
+          "min": "Minimum temperature",
+          "max": "Maximum temperature",
+          "temperature_unit": "Unit",
+          "temperature_step": "Step"
+        }
+      },
+      "swing": {
+        "title": "Swing Mode",
+        "description": "Select supported swing modes. If Swing is not supported, leave this empty and continue.",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "hvac_modes": {
+        "title": "HVAC Modes",
+        "description": "Select supported HVAC modes",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "fan_modes": {
+        "title": "Fan Modes",
+        "description": "Select supported fan modes",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "grouping_attributes": {
+        "title": "Grouping Attributes",
+        "description": "For Home Assistant Remote, attributes selected together form one full-state learned command. Swing or Preset left out of the group is sent as a standalone command.",
+        "data": {
+          "grouping_attributes": "Attributes",
+          "grouping_attributes_as_sequence": "Send as sequence"
+        }
+      },
+      "sensors": {
+        "title": "Sensors",
+        "description": "Optional: select sensors (leave empty if not used)",
+        "data": {
+          "temperature_sensor": "Temperature Sensor",
+          "humidity_sensor": "Humidity Sensor",
+          "power_sensor": "Power Sensor"
+        }
+      },
+      "preset_modes": {
+        "title": "Preset Modes",
+        "description": "Select supported preset modes. If Preset is not supported, leave this empty and continue.",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "finish": {
+        "title": "Finish",
+        "description": "Confirm and save configuration"
+      },
+      "broadlink": {
+        "title": "Broadlink",
+        "description": "Select the Broadlink remote entity that will transmit the IR codes from the uploaded profile.",
+        "data": {
+          "entity_id": "Broadlink Remote Entity"
+        }
+      },
+      "profile_upload": {
+        "title": "Climate IR Code Database",
+        "description": "{details}",
+        "data": {
+          "Upload profile": "Upload profile"
+        }
+      },
+      "profile_review": {
+        "title": "Climate Profile Summary",
+        "description": "Profile validated successfully. Please review the Climate entity capabilities before continuing.\n\n**Manufacturer:** {manufacturer}\n\n**Models:** {models}\n\n**Controller:** {controller}\n\n**Encoding:** {encoding}\n\n**Temperature:** {temperature}\n\n**HVAC Modes:** {hvac}\n\n**Fan Modes:** {fan}\n\n**Swing Modes:** {swing}\n\n**Preset Modes:** {preset}\n\n**Warnings:** {warnings}",
+        "data": {}
+      },
+      "localtuya_dp": {
+        "title": "LocalTuya IR Send DP",
+        "description": "Select the DP used to send IR commands. Known DPs are listed when LocalTuya exposes them. DP 201 is marked Recommended only when it is present. You can also enter a DP manually.",
+        "data": {
+          "dp": "IR Send DP"
+        }
+      },
+      "climate_transmitter": {
+        "title": "Climate Transmitter",
+        "description": "Choose how Climate IR commands will be transmitted.",
+        "data": {
+          "remote_type": "Transmitter"
+        }
+      },
+      "remote_backend": {
+        "title": "Remote Backend",
+        "description": "Create a standalone Remote entity that sends IR codes directly.",
+        "data": {
+          "remote_backend": "Backend"
+        }
+      },
+      "remote_mqtt": {
+        "title": "MQTT Remote",
+        "description": "Enter the MQTT IR send topic. /set/property sends the IR code directly. /set sends JSON using ir_code_to_send automatically.",
+        "data": {
+          "mqtt_topic": "MQTT Topic",
+          "ir_prefix": "IR Code Prefix (optional)"
+        }
+      },
+      "remote_localtuya": {
+        "title": "LocalTuya Direct IR Remote",
+        "description": "Select a device already configured in LocalTuya. Discovery is reused from the Climate transmitter.",
+        "data": {
+          "device_id": "LocalTuya Device"
+        }
+      },
+      "remote_localtuya_dp": {
+        "title": "LocalTuya IR Send DP",
+        "description": "Select the DP used to send IR codes.",
+        "data": {
+          "dp": "IR Send DP"
+        }
+      },
+      "remote_localtuya_prefix": {
+        "title": "LocalTuya Direct IR",
+        "description": "Optionally require and remove a prefix before sending the IR code. Leave blank to accept the IR code as-is.",
+        "data": {
+          "ir_prefix": "IR Code Prefix (optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_json": "The uploaded file is not valid JSON. See Validation details below for the exact location of the error.",
+      "profile_validation_failed": "The uploaded profile cannot be used. See Validation details below for the exact reason.",
+      "invalid_encoding": "The uploaded file is not UTF-8 encoded. See Validation details below.",
+      "profile_read_failed": "The uploaded profile could not be read. See Validation details below.",
+      "invalid_dp": "Enter a valid DP number from 1 to 999.",
+      "invalid_mqtt_ir_topic": "MQTT topic must end with /set or /set/property."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Select Transmitter",
+        "description": "Select the transmitter to use. You can keep the current transmitter or change to another one.",
+        "data": {
+          "remote_type": "Transmitter"
+        }
+      },
+      "target": {
+        "title": "Target",
+        "description": "Select a target entity and provide Learn Device ID",
+        "data": {
+          "entity_id": "Entity",
+          "ha_device_id": "Learn Device ID"
+        }
+      },
+      "temperature": {
+        "title": "Temperature",
+        "description": "Default temperature settings",
+        "data": {
+          "mode": "Mode",
+          "min": "Minimum temperature",
+          "max": "Maximum temperature",
+          "temperature_unit": "Unit",
+          "temperature_step": "Step"
+        }
+      },
+      "swing": {
+        "title": "Swing Mode",
+        "description": "Select supported swing modes. If Swing is not supported, leave this empty and continue.",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "hvac_modes": {
+        "title": "HVAC Modes",
+        "description": "Select supported HVAC modes",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "fan_modes": {
+        "title": "Fan Modes",
+        "description": "Select supported fan modes",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "grouping_attributes": {
+        "title": "Grouping Attributes",
+        "description": "For Home Assistant Remote, attributes selected together form one full-state learned command. Swing or Preset left out of the group is sent as a standalone command.",
+        "data": {
+          "grouping_attributes": "Attributes",
+          "grouping_attributes_as_sequence": "Send as sequence"
+        }
+      },
+      "sensors": {
+        "title": "Sensors",
+        "description": "Optional: select sensors (leave empty if not used)",
+        "data": {
+          "temperature_sensor": "Temperature Sensor",
+          "humidity_sensor": "Humidity Sensor",
+          "power_sensor": "Power Sensor"
+        }
+      },
+      "preset_modes": {
+        "title": "Preset Modes",
+        "description": "Select supported preset modes. If Preset is not supported, leave this empty and continue.",
+        "data": {
+          "modes": "Modes"
+        }
+      },
+      "finish": {
+        "title": "Save Configuration",
+        "description": "Review complete. Submit to save the new configuration. The existing entity will be reloaded with these settings."
+      },
+      "broadlink": {
+        "title": "Broadlink",
+        "description": "Select the Broadlink remote entity that will transmit the IR codes from the uploaded profile.",
+        "data": {
+          "entity_id": "Broadlink Remote Entity"
+        }
+      },
+      "zigbee2mqtt": {
+        "title": "Zigbee2MQTT",
+        "description": "Enter the MQTT command topic for the IR transmitter.",
+        "data": {
+          "mqtt_topic": "MQTT Topic"
+        }
+      },
+      "profile_upload": {
+        "title": "Climate IR Code Database",
+        "description": "{details}",
+        "data": {
+          "Upload profile": "Upload profile"
+        }
+      },
+      "profile_review": {
+        "title": "Climate Profile Summary",
+        "description": "Profile validated successfully. Please review the Climate entity capabilities before continuing.\n\n**Manufacturer:** {manufacturer}\n\n**Models:** {models}\n\n**Controller:** {controller}\n\n**Encoding:** {encoding}\n\n**Temperature:** {temperature}\n\n**HVAC Modes:** {hvac}\n\n**Fan Modes:** {fan}\n\n**Swing Modes:** {swing}\n\n**Preset Modes:** {preset}\n\n**Warnings:** {warnings}",
+        "data": {}
+      },
+      "localtuya": {
+        "title": "LocalTuya Direct IR",
+        "description": "Select a device already configured in LocalTuya. If discovery is unavailable, enter the LocalTuya Device ID manually.",
+        "data": {
+          "device_id": "LocalTuya Device"
+        }
+      },
+      "localtuya_dp": {
+        "title": "LocalTuya IR Send DP",
+        "description": "Select the DP used to send IR commands. Known DPs are listed when LocalTuya exposes them. DP 201 is marked Recommended only when it is present. You can also enter a DP manually.",
+        "data": {
+          "dp": "IR Send DP"
+        }
+      },
+      "remote_finish": {
+        "title": "Save Remote Settings",
+        "description": "Save the updated Remote settings.",
+        "data": {}
+      },
+      "user": {
+        "title": "Device Setup",
+        "description": "Choose which Smart Remote Control entity to create.",
+        "data": {
+          "name": "Device Name",
+          "device_type": "Device Type"
+        }
+      },
+      "climate_transmitter": {
+        "title": "Climate Transmitter",
+        "description": "Choose how Climate IR commands will be transmitted.",
+        "data": {
+          "remote_type": "Transmitter"
+        }
+      },
+      "remote_backend": {
+        "title": "Remote Backend",
+        "description": "Choose how this Remote entity sends IR codes.",
+        "data": {
+          "remote_backend": "IR Backend"
+        }
+      },
+      "remote_mqtt": {
+        "title": "MQTT Remote Settings",
+        "description": "Configure the MQTT destination used to send IR codes. Use a topic ending in /set/property to send the IR code directly, or a topic ending in /set to send ir_code_to_send automatically.",
+        "data": {
+          "mqtt_topic": "MQTT Topic",
+          "ir_prefix": "IR Code Prefix (Optional)"
+        }
+      },
+      "remote_localtuya": {
+        "title": "LocalTuya Direct IR Device",
+        "description": "Select the LocalTuya IR blaster used by this Remote entity.",
+        "data": {
+          "device_id": "LocalTuya Device"
+        }
+      },
+      "remote_localtuya_dp": {
+        "title": "LocalTuya IR Send DP",
+        "description": "Select the datapoint used by the device to send IR codes.",
+        "data": {
+          "dp": "IR Send DP"
+        }
+      },
+      "remote_localtuya_prefix": {
+        "title": "IR Code Prefix",
+        "description": "Optionally specify a prefix that must appear before each IR code. Smart Remote Control removes the prefix before sending the code. Leave this blank to use the IR code as-is.",
+        "data": {
+          "ir_prefix": "IR Code Prefix (Optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_dp": "Enter a valid IR Send DP.",
+      "invalid_json": "The uploaded file is not valid JSON. See Validation details below for the exact location of the error.",
+      "profile_validation_failed": "The uploaded profile cannot be used. See Validation details below for the exact reason.",
+      "invalid_encoding": "The uploaded file is not UTF-8 encoded. See Validation details below.",
+      "profile_read_failed": "The uploaded profile could not be read. See Validation details below.",
+      "invalid_mqtt_ir_topic": "MQTT topic must end with /set or /set/property."
+    },
+    "abort": {}
+  }
+}
