@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/zookzon/Smart-Remote-Control?label=release)](https://github.com/zookzon/Smart-Remote-Control/releases)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5%2B-41BDF5)
 ![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5)
-![License](https://img.shields.io/badge/License-Non--Commercial-orange)
+![License](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-orange)
 [![HACS Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml)
 [![Hassfest Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml)
 [![Tests](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml)
@@ -332,9 +332,9 @@ Internal development build numbers used before the first public release are not 
 
 ## License
 
-Project-original portions are © 2026 zookzon and are provided under the repository's **Non-Commercial License**. Personal, educational, research and hobby use is allowed; commercial use requires prior written permission from the copyright holder.
+Project-original portions are © 2026 zookzon and are licensed under the **PolyForm Noncommercial License 1.0.0**. The license permits the software to be used for noncommercial purposes subject to its terms. Commercial use is not granted by this license and requires separate permission from the copyright holder.
 
-This is **not an OSI-approved open-source license** because commercial use is restricted. Third-party material remains under its own license. See [LICENSE](LICENSE) and [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
+PolyForm Noncommercial 1.0.0 is not an OSI-approved open-source license because it restricts use to noncommercial purposes. Third-party material remains under its own license. See [LICENSE](LICENSE) and [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
 
 ## Credits
 
