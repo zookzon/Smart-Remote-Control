@@ -9,4 +9,6 @@ Notable references used during development include:
 - Home Assistant documentation and APIs
 - HACS validation tooling
 
-Where code or algorithms are derived from third-party projects, their original copyright and license continue to apply. This project's non-commercial license does not relicense third-party material.
+Where code or algorithms are derived from third-party projects, their original copyright notices and license terms continue to apply. Third-party material is not relicensed merely by its inclusion or reference in this project.
+
+Project-original portions of Smart Remote Control are licensed under the GNU General Public License v3.0 only (GPL-3.0-only). See [LICENSE](LICENSE).
