@@ -3,12 +3,12 @@
 [![Release](https://img.shields.io/github/v/release/zookzon/Smart-Remote-Control?label=release)](https://github.com/zookzon/Smart-Remote-Control/releases)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5%2B-41BDF5)
 ![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5)
-![License](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-orange)
+![License](https://img.shields.io/badge/License-GPL--3.0--only-blue)
 [![HACS Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml)
 [![Hassfest Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml)
 [![Tests](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml)
 
-**Smart Remote Control** is a Home Assistant custom integration for turning IR transmitters into easy-to-use Home Assistant entities. Version **1.0.0** provides two device types: **Climate** for stateful air-conditioner control and **Remote** for sending existing IR codes through a simple `remote` entity.
+**Smart Remote Control** is a Home Assistant custom integration for turning IR transmitters into easy-to-use Home Assistant entities. The integration provides two device types: **Climate** for stateful air-conditioner control and **Remote** for sending existing IR codes through a simple `remote` entity.
 
 The project is designed around a practical rule: **you should be able to reuse IR codes you already have**. A standalone Remote does not force you to relearn codes into another database.
 
@@ -35,7 +35,7 @@ The project is designed around a practical rule: **you should be able to reuse I
 - LocalTuya device and DP discovery with manual DP fallback.
 - Remote Options Flow for changing the backend configuration later.
 
-> **Fan is not included in v1.0.0.** It is planned as a later feature so the first public release can keep the tested Climate + Remote baseline stable.
+> **Fan is not included in the current 1.0.x baseline.** It is planned as a later feature so the tested Climate + Remote baseline can remain stable.
 
 ## Supported transmitters and verification status
 
@@ -312,11 +312,11 @@ Check the topic carefully. It must end in `/set` or `/set/property`. For `/set`,
 For a learned HA Remote, make sure the required `on` learned command exists. For profile-based Climate, `commands.on` is optional; when it exists it is used before the current state. The tested follow-up delay is 0.8 seconds.
 
 **Broadlink does not work on physical hardware**  
-Please report the exact Home Assistant Broadlink remote entity, profile encoding and logs. The service/payload pipeline is verified, but physical Broadlink hardware is explicitly outside the v1.0.0 hardware-tested boundary.
+Please report the exact Home Assistant Broadlink remote entity, profile encoding and logs. The service/payload pipeline is verified, but physical Broadlink hardware is explicitly outside the hardware-tested boundary.
 
 ## Verification and tests
 
-The development build used to create v1.0.0 passed **78 automated regression tests** before publication. GitHub Actions run the test suite again on pushes and pull requests, alongside HACS and Hassfest validation.
+The first public release passed **78 automated regression tests** before publication. GitHub Actions run the test suite again on pushes and pull requests, alongside HACS and Hassfest validation.
 
 The repository deliberately distinguishes between **hardware tested** and **interface/pipeline verified** behavior. See [TEST_MATRIX.md](TEST_MATRIX.md).
 
@@ -332,9 +332,11 @@ Internal development build numbers used before the first public release are not 
 
 ## License
 
-Project-original portions are © 2026 zookzon and are licensed under the **PolyForm Noncommercial License 1.0.0**. The license permits the software to be used for noncommercial purposes subject to its terms. Commercial use is not granted by this license and requires separate permission from the copyright holder.
+Project-original portions are © 2026 zookzon and are licensed under the **GNU General Public License version 3 only (GPL-3.0-only)**.
 
-PolyForm Noncommercial 1.0.0 is not an OSI-approved open-source license because it restricts use to noncommercial purposes. Third-party material remains under its own license. See [LICENSE](LICENSE) and [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
+GPLv3 permits use, modification and redistribution, including commercial use, subject to its copyleft requirements. When covered modified or redistributed versions are conveyed, recipients must retain the GPL freedoms and receive or be offered the corresponding source as required by the license.
+
+Third-party material remains under its own copyright and license terms. See [LICENSE](LICENSE) and [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
 
 ## Credits
 
