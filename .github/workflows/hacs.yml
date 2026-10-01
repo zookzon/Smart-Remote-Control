@@ -17,7 +17,3 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # GitHub Licensee currently reports PolyForm Noncommercial 1.0.0 as
-          # SPDX: NOASSERTION. Keep the project's chosen license and skip only
-          # HACS's repository-license identification check.
-          ignore: license
