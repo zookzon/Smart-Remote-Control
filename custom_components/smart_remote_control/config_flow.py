@@ -316,7 +316,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 upload = user_input[CONF_PROFILE_FILE]
                 path = await process_uploaded_file(self.hass, upload)
-                profile = json.loads(path.read_text(encoding="utf-8"))
+                profile_text = await self.hass.async_add_executor_job(path.read_text, "utf-8")
+                profile = json.loads(profile_text)
                 validate_climate_profile(profile)
                 self._data[CONF_DEVICE_PROFILE] = profile
                 self._profile_summary = profile_summary(profile)
