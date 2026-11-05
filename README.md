@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/zookzon/Smart-Remote-Control?label=release)](https://github.com/zookzon/Smart-Remote-Control/releases)
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.5%2B-41BDF5)
 ![HACS](https://img.shields.io/badge/HACS-Custom-41BDF5)
-![License](https://img.shields.io/badge/License-Non--Commercial-orange)
+![License](https://img.shields.io/badge/License-GPL--3.0--only-blue)
 [![HACS Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hacs.yml)
 [![Hassfest Validation](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/hassfest.yml)
 [![Tests](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml/badge.svg)](https://github.com/zookzon/Smart-Remote-Control/actions/workflows/tests.yml)
