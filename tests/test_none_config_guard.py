@@ -10,15 +10,16 @@ from __future__ import annotations
 
 import sys
 import types
+from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
+sys.path.insert(0, str(Path(__file__).parents[1]))
 
 if "aiofiles" not in sys.modules:
     sys.modules["aiofiles"] = types.ModuleType("aiofiles")
 
-from custom_components.smart_remote_control import climate as climate_module  # noqa: E402
-from custom_components.smart_remote_control.const import (  # noqa: E402
+from custom_components.smart_remote_control import climate as climate_module
+from custom_components.smart_remote_control.const import (
     CONF_FAN_MODES,
     CONF_HVAC_MODES,
     CONF_PRESET_MODES,
