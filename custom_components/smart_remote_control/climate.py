@@ -32,6 +32,7 @@ from .const import (
     CONF_GROUPING_ATTRIBUTES,
     CONF_GROUPING_ATTRIBUTES_AS_SEQUENCE,
     CONF_DEVICE_TYPE,
+    CONF_PRESET_MODES,
 )
 
 from .remote_control import (
@@ -203,7 +204,7 @@ class SmartRemoteClimate(ClimateEntity, RestoreEntity):
 
         # ----- Climate settings -----
         # HA Remote uses ConfigFlow values. Database transmitters use the uploaded profile as source of truth.
-        temp_conf = config.get(CONF_TEMPERATURE, {})
+        temp_conf = config.get(CONF_TEMPERATURE) or {}
         if self._data and remote_type in ("broadlink", "zigbee2mqtt", "localtuya"):
             self._attr_target_temperature_step = float(self._data.get("precision", 1.0))
             self._attr_min_temp = float(self._data.get("minTemperature", 16.0))
@@ -220,7 +221,7 @@ class SmartRemoteClimate(ClimateEntity, RestoreEntity):
 
         # Fan modes
         self._attr_fan_modes = []
-        fan_conf = config.get(CONF_FAN_MODES, {})
+        fan_conf = config.get(CONF_FAN_MODES) or {}
         if self._data and remote_type in ("broadlink", "zigbee2mqtt", "localtuya"):
             self._attr_fan_modes = list(self._data.get("fanModes", []))
         elif fan_conf:
@@ -232,7 +233,7 @@ class SmartRemoteClimate(ClimateEntity, RestoreEntity):
             self._attr_fan_mode = None
 
         # Swing modes
-        swing_conf = config.get(CONF_SWING, {})
+        swing_conf = config.get(CONF_SWING) or {}
         if self._data and remote_type in ("broadlink", "zigbee2mqtt", "localtuya"):
             self._attr_swing_modes = list(self._data.get("swingModes", []))
         else:
@@ -244,7 +245,7 @@ class SmartRemoteClimate(ClimateEntity, RestoreEntity):
             self._attr_swing_mode = None
 
         # HVAC modes
-        hvac_conf = config.get(CONF_HVAC_MODES, {})
+        hvac_conf = config.get(CONF_HVAC_MODES) or {}
         if self._data and remote_type in ("broadlink", "zigbee2mqtt", "localtuya"):
             hvac_modes = list(self._data.get("operationModes", []))
         else:
@@ -254,7 +255,7 @@ class SmartRemoteClimate(ClimateEntity, RestoreEntity):
         self._hvac_action = HVACAction.OFF
 
         # Preset modes configured by Config Flow / Options Flow.
-        preset_conf = config.get("preset_modes", {})
+        preset_conf = config.get(CONF_PRESET_MODES) or {}
         if self._data and remote_type in ("broadlink", "zigbee2mqtt", "localtuya"):
             configured_preset_modes = list(self._data.get("presetModes", []))
         else:
